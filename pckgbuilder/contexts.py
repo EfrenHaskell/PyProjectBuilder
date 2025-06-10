@@ -11,7 +11,7 @@ __version__ = "0.1"
 
 
 from pathlib import Path
-from os import sep, path, chdir
+from os import sep, path, chdir, pathsep, environ
 import venv
 import sys
 import subprocess
@@ -293,37 +293,30 @@ class PipContext(Context):
         self.env_name = env_name
         self.fs = file_structure
 
-    def init_venv(self):
-        venv.EnvBuilder(with_pip=True).create(self.env_name)
-
-    def activate(self):
-        """
-        Venv activation
-        - Yet to be tested, should work in theory
-        """
-        venv_loc = self.fs.make_path(self.env_name)
-        if sys.platform == "win32":
-            activate_script = path.join(venv_loc, "Scripts", "activate.bat")
-        else:
-            activate_script = path.join(venv_loc, "bin", "activate")
-        with open(activate_script) as file:
-            exec(file.read(), {'__file__': activate_script})
-
     def add_to_reqs(self, pip_spec: str):
         with open(self.fs.make_path("requirements.txt"), "a") as file:
             file.write(pip_spec + "\n")
 
+    def init_venv(self):
+        venv.EnvBuilder(with_pip=True).create(self.fs.make_path(self.env_name))
+
     def install(self):
-        try:
-            venv_loc = self.fs.make_path("requirements.txt")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", venv_loc])
-            print(f"Successfully installed all dependencies from {venv_loc}")
-        except subprocess.CalledProcessError as e:
-            print(f"Installation failed: {e}")
+        if sys.platform == "win32":
+            venv_loc: str = path.join(self.fs.make_path(self.env_name), "Scripts", "pip.exe")
+        else:
+            venv_loc: str = path.join(self.fs.make_path(self.env_name), "bin", "pip")
+        if not path.isfile(venv_loc):
+            raise FileNotFoundError(f"Could not find pip at: {venv_loc}")
+
+        result = subprocess.run([venv_loc, "install", "-r", self.fs.make_path("requirements.txt")])
+        if result.returncode != 0:
+            print("Failed to install packages from requirements.")
+        else:
+            print(f"Successfully installed all packages in {self.env_name}")
 
     def map(self, package_spec: str):
         self.add_to_reqs(package_spec)
 
     def exit_context(self):
-        self.activate()
+        self.init_venv()
         self.install()

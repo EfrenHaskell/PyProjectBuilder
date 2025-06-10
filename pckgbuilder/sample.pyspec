@@ -1,15 +1,2 @@
-#filestructure
-dir test
-->
-file
-file
-file
-<-
-dir test_2
-->
-file test.py
-file test.py
-<-
-
-#mldunders
-author=Efren Haskell
+#install
+hello-world

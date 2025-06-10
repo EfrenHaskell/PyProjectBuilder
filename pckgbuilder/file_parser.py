@@ -13,6 +13,7 @@ from meta import MetaVars
 import contexts as ctx
 import re
 import image
+from os import sep
 
 
 def clean_line(line: str) -> str:
@@ -66,7 +67,7 @@ class Session:
             return ctx.MLDundersContext(self.template_file)
         elif context_name == "install":
             if MetaVars.Venv_nm not in self.meta:
-                self.meta[MetaVars.Venv_nm] = ".venv"
+                self.meta[MetaVars.Venv_nm] = f".{sep}venv"
             return ctx.PipContext(self.meta[MetaVars.Venv_nm], self.meta[MetaVars.Home_dir])
         else:
             raise Exception("Unknown context")
