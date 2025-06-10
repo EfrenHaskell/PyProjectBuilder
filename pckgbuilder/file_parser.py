@@ -1,10 +1,17 @@
-"""
+#!usr/bin/env Python
 
 """
+File parser and session for holding metadata
+"""
 
+__author__ = "Efren"
+__date__ = "6/10/2025"
+__status__ = "development"
+__version__ = "0.1"
+
+from meta import MetaVars
 import contexts as ctx
 import re
-from meta import MetaVars
 import image
 
 
@@ -23,8 +30,13 @@ class Session:
     def __init__(self):
         self.meta: dict[MetaVars] = {}
         self.chain: image.PriorityChain = image.PriorityChain()
+        self.template_file: ctx.PyFileTemplate = ctx.PyFileTemplate()
 
     def line_parse(self, filename: str):
+        """
+        Create chain of context objects ordered by context priority
+        :param filename:
+        """
         with open(filename, "r") as file:
             lines = file.readlines()
         context_proc: image.Procedure | None = None
@@ -43,10 +55,15 @@ class Session:
                 # curr_context.map(line.split())
 
     def new_context(self, context_name: str) -> ctx.Context:
+        """
+        Returns corresponding contexts for string names
+        :param context_name:
+        :return:
+        """
         if context_name == "filestructure":
-            return ctx.FSContext(self.meta[MetaVars.Home_dir])
-        elif context_name == "docstring":
-            return ctx.MLDundersContext()
+            return ctx.FSContext(self.meta[MetaVars.Home_dir], self.template_file)
+        elif context_name == "mldunders":
+            return ctx.MLDundersContext(self.template_file)
         elif context_name == "install":
             if MetaVars.Venv_nm not in self.meta:
                 self.meta[MetaVars.Venv_nm] = ".venv"
@@ -55,4 +72,7 @@ class Session:
             raise Exception("Unknown context")
 
     def process_all(self):
+        """
+        Process context procedures from chain
+        """
         self.chain.process_by_priority()

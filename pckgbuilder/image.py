@@ -1,3 +1,15 @@
+#!usr/bin/env Python
+
+"""
+Image module provides Procedure and PriorityChain Objects
+Used for representing context -- task relation and priority grouping
+"""
+
+__author__ = "Efren"
+__date__ = "6/10/2025"
+__status__ = "development"
+__version__ = "0.1"
+
 import contexts
 
 
@@ -18,6 +30,7 @@ class Procedure:
     def process_tasks(self):
         for task in self.task_list:
             self.context.map(task)
+        self.context.exit_context()
 
 
 class PriorityChain:
@@ -27,7 +40,7 @@ class PriorityChain:
     """
 
     def __init__(self):
-        self.internal: list[list[Procedure]] = []
+        self.internal: list[list[Procedure]] = [[], [], [], []]
 
     def add(self, procedure: Procedure):
         """

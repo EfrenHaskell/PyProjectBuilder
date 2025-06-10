@@ -11,12 +11,5 @@ file test.py
 file test.py
 <-
 
-#install
-streamlit
-requests==2.31.0
-pyotp
-
 #mldunders
-name = Bobby Bobberson
-date = default
-
+author=Efren Haskell
