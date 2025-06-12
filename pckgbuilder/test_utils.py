@@ -23,7 +23,8 @@ def reset_session():
     """
     Remove redundant files and directories
     """
-    shutil.rmtree(f".{sep}test")
+    if path.exists(f".{sep}test") and path.isdir(f".{sep}test"):
+        shutil.rmtree(f".{sep}test")
     if path.exists(f".{sep}requirements.txt"):
         remove(f".{sep}requirements.txt")
 

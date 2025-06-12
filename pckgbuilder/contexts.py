@@ -196,6 +196,8 @@ class GitContext(Context):
     def __init__(self, file_structure: FileStructure, git_dir: str):
         self.git_dir = git_dir
         self.fs: FileStructure = file_structure
+        self.most_recent_branch = ""
+        self.current_branch = "main"
 
     def __enter_dir(self):
         chdir(self.fs.make_path(self.git_dir))
@@ -213,10 +215,14 @@ class GitContext(Context):
         subprocess.check_call(["git", "clone", remote_repo])
 
     def enter(self):
-        pass
+        subprocess.check_call(["git", "checkout", self.current_branch])
 
     def leave(self):
         pass
+
+    def new_branch(self, name: str):
+        subprocess.check_call(["git", "branch", name])
+        self.most_recent_branch = name
 
 
 class MLDundersContext(Context):

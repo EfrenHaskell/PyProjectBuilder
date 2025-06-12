@@ -8,13 +8,8 @@
       <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/contexts.py" beforeDir="false" afterPath="$PROJECT_DIR$/contexts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/file_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/file_parser.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sample.pyspec" beforeDir="false" afterPath="$PROJECT_DIR$/sample.pyspec" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test/file0.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test/file1.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test/file2.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_2/test.0.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_2/test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,5 +55,16 @@
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.cfg" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/test_utils.py</url>
+          <line>12</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
