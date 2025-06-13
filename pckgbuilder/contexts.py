@@ -11,7 +11,7 @@ __version__ = "0.1"
 
 
 from pathlib import Path
-from os import sep, path, chdir, pathsep, environ
+from os import sep, path, chdir, remove, walk
 import venv
 import sys
 import subprocess
@@ -43,6 +43,25 @@ def handle_existing_file(filename: str) -> str:
         extension_idx: int = filename.rfind(".")
         temp = f"{filename[:extension_idx]}.{id_counter}{filename[extension_idx:]}"
         id_counter += 1
+
+
+def assignment_tokenizer(line):
+    """
+    Tokenize on assignment operator
+    """
+    tokens = []
+    token = ""
+    length = len(line)
+    for index in range(length):
+        char = line[index]
+        if char == "=" or index == length - 1:
+            if char != "=":
+                token += char
+            tokens.append(token.strip())
+            token = ""
+        else:
+            token += char
+    return tokens
 
 
 class PyFileTemplate:
@@ -83,6 +102,22 @@ class PyFileTemplate:
         self.default_text_data.extend(items)
 
 
+class SubsectionMap:
+    def __init__(self, funcmap: dict):
+        self.internal = funcmap
+        self.curr_subsection = ""
+
+    def exec(self, params: list):
+        if self.curr_subsection == "":
+            raise Exception("No subsection set")
+        if self.curr_subsection not in self.internal:
+            return
+        self.internal[self.curr_subsection](*params)
+
+    def switch(self, subsection: str):
+        self.curr_subsection = subsection
+
+
 class FileStructure:
 
     """
@@ -103,11 +138,29 @@ class FileStructure:
         """
         return self.home + self.curr_relative + name
 
+    def enter(self, dir_name: str):
+        self.curr_relative += dir_name + sep
+
+    def leave(self):
+        index = self.curr_relative.rfind(sep, 0, len(self.curr_relative) - 2)
+        if index > 0:
+            self.curr_relative = self.curr_relative[:index + 1]
+        else:
+            self.curr_relative = sep
+
     def search(self):
         """
         Potential future functionality
         """
         pass
+
+    def not_empty(self) -> bool:
+        for root, _, files in walk(self.home):
+            for file in files:
+                file_path = path.join(root, file)
+                if path.isfile(file_path) and file != "temp.md":
+                    return True
+        return False
 
 
 class Context:
@@ -154,14 +207,10 @@ class FSContext(Context):
         print(f"Successfully created directory: {dir_name}")
 
     def enter(self, dir_name: str):
-        self.fs.curr_relative += dir_name + sep
+        self.fs.enter(dir_name)
 
     def leave(self):
-        index = self.fs.curr_relative.rfind(sep, 0, len(self.fs.curr_relative)-2)
-        if index > 0:
-            self.fs.curr_relative = self.fs.curr_relative[:index+1]
-        else:
-            self.fs.curr_relative = sep
+        self.fs.leave()
 
     def map(self, line: str):
         elements: list[str] = line.split()
@@ -193,36 +242,123 @@ class GitContext(Context):
     Context for git initialization
      - Still in development
     """
-    def __init__(self, file_structure: FileStructure, git_dir: str):
-        self.git_dir = git_dir
+    def __init__(self, file_structure: FileStructure):
         self.fs: FileStructure = file_structure
-        self.most_recent_branch = ""
-        self.current_branch = "main"
+        self.opts: list[str] = [self.fs.home, "", "", ""]
+        self.git_bs = FileStructure("")
+        self.most_recent_nest = ""
+        self.sub_map = SubsectionMap({
+            "opt": self.opt,
+            "branches": self.branches,
+            "readme": self.readme,
+            "gitignore": self.gitignore,
+        })
+        self.ignore: list[str] = []
+        self.readme_text: list[str] = []
 
     def __enter_dir(self):
-        chdir(self.fs.make_path(self.git_dir))
+        print(self.fs.home)
+        print(self.opts[0])
+        if self.opts[0] != self.fs.home:
+            if self.opts[0] == "default":
+                chdir(self.fs.make_path(""))
+            else:
+                chdir(self.fs.make_path(self.opts[0]))
 
-    def new_repo(self, remote_repo: str, repo_name: str):
+    def init_repo(self):
         self.__enter_dir()
-        subprocess.check_call(["git", "init"])
-        subprocess.check_call(["git", "branch", "-M", "main"])
-        subprocess.check_call(["git", "remote", "add", "origin", remote_repo])
+        subprocess.run(["git", "init"])
+        with open("temp.md", "w") as file:
+            file.write("Updates coming soon...")
+        subprocess.run(["git", "add", "temp.md"])
+        subprocess.run(["git", "commit", "-m", "Setup"])
+        self.init_main_branch()
+
+    def add_readme(self):
         with open("README.md", "w") as file:
-            file.write(f"# {repo_name}")
+            contents = "\n".join(self.readme_text)
+            file.write(f"# {self.opts[1]}\n{contents}")
 
-    def clone_repo(self, remote_repo: str):
-        self.__enter_dir()
-        subprocess.check_call(["git", "clone", remote_repo])
+    def add_gitignore(self):
+        with open(".gitignore", "w") as file:
+            file.write("\n".join(self.ignore))
 
-    def enter(self):
-        subprocess.check_call(["git", "checkout", self.current_branch])
+    def gitignore(self, line):
+        self.ignore.append(line)
+
+    def readme(self, line):
+        self.readme_text.append(line)
+
+    @staticmethod
+    def init_main_branch():
+        subprocess.check_call(["git", "branch", "-M", "main"])
+
+    def add_origin(self):
+        subprocess.check_call(["git", "remote", "add", "origin", self.opts[2]])
+
+    def enter(self, nest_group: str):
+        self.git_bs.enter(nest_group)
 
     def leave(self):
-        pass
+        self.git_bs.leave()
 
     def new_branch(self, name: str):
         subprocess.check_call(["git", "branch", name])
-        self.most_recent_branch = name
+        self.most_recent_nest = name
+
+    def push(self):
+        subprocess.run(["git", "add", "."])
+        subprocess.run(["git", "commit", "-m", "Push project items"])
+        if self.opts[3] == "":
+            subprocess.run(["git", "push", "-u", "origin", "main"])
+        else:
+            subprocess.run(["git", "push", "origin", self.opts[3]])
+
+    def opt(self, line):
+        tokens = assignment_tokenizer(line)
+        if len(tokens) > 1:
+            var = tokens[0].lower()
+            value = tokens[1]
+            if var == "dir":
+                self.opts[0] = value
+                self.init_repo()
+            elif var == "name":
+                self.opts[1] = value
+            elif var == "origin":
+                self.opts[2] = value
+                self.add_origin()
+            elif var == "branch":
+                self.opts[3] = value
+
+    def branches(self, task: str):
+        if task == "->":
+            self.git_bs.enter(self.most_recent_nest)
+        elif task == "<-":
+            self.git_bs.leave()
+        else:
+            task_elements = task.split(" ")
+            if len(task_elements) < 2:
+                raise Exception("Missing required positional argument")
+            name = task_elements[1]
+            if task_elements[0] == "nest":
+                self.most_recent_nest = name
+            else:
+                self.new_branch(self.git_bs.make_path(name))
+
+    def map(self, line):
+        if line[:2] == "//":
+            self.sub_map.switch(line[2:].strip().lower())
+        else:
+            self.sub_map.exec([line])
+
+    def exit_context(self):
+        subprocess.run(["git", "reset"])
+        if self.fs.not_empty():
+            remove("temp.md")
+        self.add_readme()
+        self.add_gitignore()
+        if self.opts[2] != "":
+            self.push()
 
 
 class MLDundersContext(Context):
@@ -233,7 +369,7 @@ class MLDundersContext(Context):
     """
     def __init__(self, template):
         self.default: dict[str, str] = {}
-        self.dunder_list = ["#!usr/bin/env Python"]
+        self.dunder_list = ["#!usr/bin/env Python", "\n\"\"\"\nDescription here...\n\"\"\"\n"]
         date_time = datetime.datetime.now()
         date_str = f"{date_time.month}/{date_time.day}/{date_time.year}"
         self.dunders: dict[str, str] = {
@@ -248,28 +384,11 @@ class MLDundersContext(Context):
         self.template: PyFileTemplate = template
 
     @staticmethod
-    def __custom_tokenize(line):
-        """
-        Tokenize on =
-        """
-        tokens = []
-        token = ""
-        length = len(line)
-        for index in range(length):
-            char = line[index]
-            if char == "=" or index == length - 1:
-                tokens.append(token.strip())
-                token = ""
-            else:
-                token += char
-        return tokens
-
-    @staticmethod
     def __dunder_expression(dunder: str, value: str):
         return f"__{dunder}__ = \"{value}\""
 
     def map(self, line):
-        tokens = self.__custom_tokenize(line)
+        tokens = assignment_tokenizer(line)
         if len(tokens) < 2:
             raise Exception("All Module-level dunders must be of form key=value")
         dunder = tokens[0]

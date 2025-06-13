@@ -69,6 +69,8 @@ class Session:
             if MetaVars.Venv_nm not in self.meta:
                 self.meta[MetaVars.Venv_nm] = f".{sep}venv"
             return ctx.PipContext(self.meta[MetaVars.Venv_nm], self.meta[MetaVars.Home_dir])
+        elif context_name == "git":
+            return ctx.GitContext(self.meta[MetaVars.Home_dir])
         else:
             raise Exception("Unknown context")
 

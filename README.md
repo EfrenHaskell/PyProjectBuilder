@@ -1,4 +1,10 @@
 # PyProjectBuilder
+## Updates
+PyProjectBuilder is still in development <b>
+For the most up-to-date code, please view the pckgbuilder folder <b>
+Next development goal:
+ - Finish client code
+ - Create dynamic controls
 ## Functionality
 PyProjectBuilder is a DevTool for setting up Python projects.
 A project's file structure can be detailed in a pyspec file.

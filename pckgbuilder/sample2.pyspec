@@ -1,0 +1,23 @@
+#filestructure
+dir test
+->
+dir test2
+file test.txt
+->
+file
+<-
+file
+dir test3
+->
+file test.py
+<-
+file
+<-
+dir test4
+->
+file
+<-
+
+#mldunders
+author=Efren Haskell
+
