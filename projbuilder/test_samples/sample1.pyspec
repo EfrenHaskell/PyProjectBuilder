@@ -1,0 +1,30 @@
+#opts
+    home_dir = default
+    git_name = test
+
+#git
+    //branches
+        nest utils
+        ->
+            branch tool1
+            branch tool2
+            <-
+        nest test
+        ->
+            branch test1
+            <-
+
+#filestructure
+    dir test_dir
+    ->
+        file test.txt
+        file test.py
+        dir test_dir1
+        ->
+            file
+            <-
+        dir test_dir2
+        ->
+            file
+            <-
+    <-

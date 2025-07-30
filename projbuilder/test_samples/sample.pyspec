@@ -1,0 +1,35 @@
+#filestructure
+dir projbuilder
+->
+    context_utils.py
+    contexts.py
+    ->
+        objects.py
+        <-
+    error.py
+    spec.py
+    ->
+        load.py
+        contexts.py
+        objects.py
+        error.py
+        <-
+    objects.py
+    <-
+
+#git
+gitignore
+->
+    DefaultProject/main.py
+    <-
+README
+->
+    dir sections
+    ->
+        section1.md
+        section2.md
+        section3.md
+        <-
+
+#pip
+bs4
