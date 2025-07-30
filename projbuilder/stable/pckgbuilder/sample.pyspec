@@ -1,0 +1,18 @@
+#filestructure
+dir test
+->
+file
+file
+file
+<-
+dir test_2
+->
+file test.py
+file test.py
+<-
+
+#install
+hello-world
+
+#mldunders
+author=Efren Haskell
